@@ -1,0 +1,5 @@
+TODO:
+1 Write tests for Observable.amb
+2 Find some reasonable use case for asObservable
+3 Timed scheduler to implement e.g. buffer correctly
+4 Move out tests from ObservableTest to separate test classes
