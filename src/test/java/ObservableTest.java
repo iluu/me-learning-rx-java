@@ -8,11 +8,13 @@ import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
 import rx.functions.Func1;
+import rx.functions.Func2;
 import rx.subjects.PublishSubject;
 
+import java.util.Arrays;
+
 import static com.pivotallabs.greatexpectations.Expect.expect;
-import static helpers.TestFunctions.just0;
-import static helpers.TestFunctions.just1;
+import static helpers.TestFunctions.*;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
 
@@ -69,15 +71,9 @@ public class ObservableTest {
             }
         }).subscribe(testObserver);
 
-        verify(testObserver).onNext(2);
-        verify(testObserver).onNext(4);
-        verify(testObserver).onNext(6);
-        verify(testObserver).onCompleted();
+        verifyNotificationSequence(testObserver, Arrays.asList(2, 4, 6));
     }
 
-    /**
-     * For debugging
-     */
     @Test
     @SuppressWarnings("unchecked")
     public void materializeWrapsSequenceEventsWithRxNotifications() {
@@ -109,11 +105,7 @@ public class ObservableTest {
             }
         }).subscribe(testObserver);
 
-        verify(testObserver).onNext(1);
-        verify(testObserver).onNext(2);
-        verify(testObserver).onNext(3);
-        verify(testObserver).onNext(6);
-        verify(testObserver).onCompleted();
+        verifyNotificationSequence(testObserver, Arrays.asList(1, 2, 3, 6));
     }
 
     @Test
@@ -128,10 +120,7 @@ public class ObservableTest {
         observable.onNext(100);
         observable.onCompleted();
 
-        verify(testObserver).onNext(1);
-        verify(testObserver).onNext(0);
-        verify(testObserver).onCompleted();
-        verifyNoMoreInteractions(testObserver);
+        verifyNotificationSequence(testObserver, Arrays.asList(1, 0));
     }
 
     @Test
@@ -210,11 +199,7 @@ public class ObservableTest {
                 .onErrorResumeNext(runOnError)
                 .subscribe(testObserver);
 
-        verify(testObserver).onNext(1);
-        verify(testObserver).onNext(2);
-        verify(testObserver).onCompleted();
-
-        verifyZeroInteractions(testObserver);
+        verifyNotificationSequence(testObserver, Arrays.asList(1, 2));
     }
 
     @Test
@@ -229,12 +214,34 @@ public class ObservableTest {
         observable.onNext(1);
         observable.onError(new Throwable());
 
-        verify(testObserver).onNext(1);
-        verify(testObserver).onNext(3);
-        verify(testObserver).onNext(4);
-        verify(testObserver).onCompleted();
-
+        verifyNotificationSequence(testObserver, Arrays.asList(1, 3, 4));
         verify(testObserver, never()).onError(any(Throwable.class));
+    }
+
+    @Test
+    public void scanWorksAsAccumulatorFunction() {
+        Observable<Integer> observable = Observable.from(1, 2, 3);
+        observable.scan(new Func2<Integer, Integer, Integer>() {
+            @Override
+            public Integer call(Integer accumulator, Integer currentValue) {
+                return accumulator + currentValue;
+            }
+        }).subscribe(testObserver);
+
+        verifyNotificationSequence(testObserver, Arrays.asList(1, 3, 6));
+    }
+
+    @Test
+    public void scanWorksAsAccumulatorFunctionWithInitialValue() {
+        Observable<Integer> observable = Observable.from(1, 2, 3);
+        observable.scan(10, new Func2<Integer, Integer, Integer>() {
+            @Override
+            public Integer call(Integer accumulator, Integer currentValue) {
+                return accumulator + currentValue;
+            }
+        }).subscribe(testObserver);
+
+        verifyNotificationSequence(testObserver, Arrays.asList(10, 11, 13, 16));
     }
 }
 
