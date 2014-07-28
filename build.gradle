@@ -7,6 +7,13 @@ repositories {
     mavenCentral()
 }
 
+test {
+    testLogging {
+        events "passed", "skipped", "failed"
+        outputs.upToDateWhen { false }
+    }
+}
+
 dependencies {
     compile 'com.netflix.rxjava:rxjava-core:0.19.1'
     compile 'com.netflix.rxjava:rxjava-debug:0.19.1'
