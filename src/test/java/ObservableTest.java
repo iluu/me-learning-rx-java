@@ -61,6 +61,39 @@ public class ObservableTest {
     }
 
     @Test
+    public void filterReturnsOnlyValuesThatSatisfyGivenCondition() {
+        Observable<Integer> observable = Observable.from(1, 2, 3, 4);
+
+        observable.filter(new Func1<Integer, Boolean>() {
+            @Override
+            public Boolean call(Integer integer) {
+                return integer % 2 == 0;
+            }
+        }).subscribe(testObserver);
+
+        verifyNotificationSequence(testObserver, Arrays.asList(2, 4));
+    }
+
+    @Test
+    public void lastReturnsLastElementEmitted() {
+        Observable<Integer> observable = Observable.from(1, 2, 3);
+
+        observable.last().subscribe(testObserver);
+
+        verifyNotificationSequence(testObserver, Arrays.asList(3));
+    }
+
+    @Test
+    public void lastThrowsIndexOutOfBoundsWhenObservableDoesNotEmit() {
+        PublishSubject<Integer> observable = PublishSubject.create();
+
+        observable.last().subscribe(testObserver);
+        observable.onCompleted();
+
+        verify(testObserver).onError(any(IndexOutOfBoundsException.class));
+    }
+
+    @Test
     public void mapTransformsEachEmittedItem() {
         Observable<Integer> observable = Observable.from(1, 2, 3);
 
@@ -242,6 +275,23 @@ public class ObservableTest {
         }).subscribe(testObserver);
 
         verifyNotificationSequence(testObserver, Arrays.asList(10, 11, 13, 16));
+    }
+
+    @Test
+    public void takeLastEmitsOnlyGivenNumberOfLastElements() {
+        Observable<Integer> observable = Observable.from(1, 2, 3, 4, 5, 6, 7, 8);
+        observable.takeLast(2).subscribe(testObserver);
+
+        verifyNotificationSequence(testObserver, Arrays.asList(7, 8));
+    }
+
+    @Test
+    public void takeLastFromEmptyObserverDoesNotEmitAnyValue() {
+        Observable<Integer> observable = Observable.empty();
+        observable.takeLast(2).subscribe(testObserver);
+
+        verify(testObserver, never()).onNext(anyInt());
+        verify(testObserver).onCompleted();
     }
 }
 
