@@ -3,6 +3,7 @@ package helpers;
 import rx.Observer;
 import rx.functions.Func0;
 import rx.functions.Func1;
+import rx.subjects.PublishSubject;
 
 import java.util.List;
 
@@ -46,6 +47,44 @@ public class TestFunctions {
         }
         verify(mockObserver).onCompleted();
         verifyNoMoreInteractions(mockObserver);
+    }
+
+    /**
+     * Emits all values and completes the subject in a new thread.
+     */
+    public static void runInNewThread(final PublishSubject<Integer> subject, final List<Integer> values) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                threadSleep();
+                for (Integer value : values) {
+                    subject.onNext(value);
+                }
+                subject.onCompleted();
+            }
+        }).start();
+    }
+
+    /**
+     * Emits all values and completes the subject in a new thread.
+     */
+    public static void runInNewThreadEmitNull(final PublishSubject<Integer> subject) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                threadSleep();
+                subject.onNext(null);
+                subject.onCompleted();
+            }
+        }).start();
+    }
+
+
+    private static void threadSleep() {
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException ignored) {
+        }
     }
 
 

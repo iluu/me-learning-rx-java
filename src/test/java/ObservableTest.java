@@ -9,12 +9,18 @@ import rx.Observer;
 import rx.Subscriber;
 import rx.functions.Func1;
 import rx.functions.Func2;
+import rx.observables.BlockingObservable;
 import rx.subjects.PublishSubject;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.NoSuchElementException;
 
 import static com.pivotallabs.greatexpectations.Expect.expect;
 import static helpers.TestFunctions.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
 
@@ -173,6 +179,22 @@ public class ObservableTest {
     }
 
     @Test
+    public void observableCreateDoesNotNeedToCallOnNext() {
+        Observable<Integer> observable = Observable.create(new Observable.OnSubscribe<Integer>() {
+            @Override
+            public void call(Subscriber<? super Integer> subscriber) {
+                subscriber.onCompleted();
+            }
+        });
+
+        observable.subscribe(testObserver);
+        verify(testObserver, never()).onNext(anyInt());
+        verify(testObserver).onCompleted();
+
+        verifyNoMoreInteractions(testObserver);
+    }
+
+    @Test
     public void observableJustConvertsSingleObjectToObservable() {
         Observable<Integer> observable = Observable.just(1);
 
@@ -208,19 +230,67 @@ public class ObservableTest {
     }
 
     @Test
-    public void observableCreateDoesNotNeedToCallOnNext() {
-        Observable<Integer> observable = Observable.create(new Observable.OnSubscribe<Integer>() {
+    public void blockingObservableSingleReturnsTheOnlyElementEmitted() {
+        PublishSubject<Integer> observable = PublishSubject.create();
+        BlockingObservable<Integer> result = observable.toBlocking();
+
+        runInNewThread(observable, Arrays.asList(2));
+        assertThat(result.single(), is(2));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void blockingObservableSingleThrowsExceptionWhenMoreThenOneValueGetsEmitted() {
+        PublishSubject<Integer> observable = PublishSubject.create();
+        BlockingObservable<Integer> result = observable.toBlocking();
+
+        runInNewThread(observable, Arrays.asList(1, 2));
+        result.single();
+    }
+
+    @Test
+    public void blockingObservableSingleReturnsSingleElementThatFulfillsPredicate() {
+        PublishSubject<Integer> observable = PublishSubject.create();
+        BlockingObservable<Integer> result = observable.toBlocking();
+
+        runInNewThread(observable, Arrays.asList(1, 2));
+        assertThat(result.single(new Func1<Integer, Boolean>() {
             @Override
-            public void call(Subscriber<? super Integer> subscriber) {
-                subscriber.onCompleted();
+            public Boolean call(Integer integer) {
+                return integer % 2 == 0;
+            }
+        }), is(2));
+    }
+
+    @Test(expected = NoSuchElementException.class)
+    public void blockingObservableSingleThrowsExceptionWhenNoValueFulfillsGivenPredicate() {
+        PublishSubject<Integer> observable = PublishSubject.create();
+        BlockingObservable<Integer> result = observable.toBlocking();
+
+        runInNewThread(observable, Arrays.asList(1, 2));
+        result.single(new Func1<Integer, Boolean>() {
+            @Override
+            public Boolean call(Integer integer) {
+                return integer > 5;
             }
         });
+    }
 
-        observable.subscribe(testObserver);
-        verify(testObserver, never()).onNext(anyInt());
-        verify(testObserver).onCompleted();
+    @Test
+    public void blockingObservableSingleOrDefaultReturnsNullAsAValidValue() {
+        PublishSubject<Integer> observable = PublishSubject.create();
+        BlockingObservable<Integer> result = observable.toBlocking();
 
-        verifyNoMoreInteractions(testObserver);
+        runInNewThreadEmitNull(observable);
+        assertThat(result.singleOrDefault(2), is(nullValue()));
+    }
+
+    @Test
+    public void blockingObservableSingleOrDefaultReturnsDefaultWhenNoValueWasEmitted() {
+        PublishSubject<Integer> observable = PublishSubject.create();
+        BlockingObservable<Integer> result = observable.toBlocking();
+
+        runInNewThread(observable, Collections.<Integer>emptyList());
+        assertThat(result.singleOrDefault(2), is(2));
     }
 
     @Test
