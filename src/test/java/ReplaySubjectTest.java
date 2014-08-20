@@ -1,15 +1,15 @@
-import helpers.MockitoTestRunner;
+import static helpers.TestFunctions.verifyNotificationSequence;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import rx.Observer;
 import rx.subjects.ReplaySubject;
 
 import java.util.Arrays;
 
-import static helpers.TestFunctions.verifyNotificationSequence;
-
-@RunWith(MockitoTestRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ReplaySubjectTest {
 
     @Mock

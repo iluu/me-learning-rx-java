@@ -1,9 +1,9 @@
 import static helpers.TestFunctions.verifyNotificationSequence;
 
-import helpers.MockitoTestRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import rx.Observable;
 import rx.Observer;
 import rx.functions.Func1;
@@ -11,7 +11,7 @@ import rx.functions.Func2;
 
 import java.util.Arrays;
 
-@RunWith(MockitoTestRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class SnippetsTest {
 
     @Mock private Observer<Integer> observer;

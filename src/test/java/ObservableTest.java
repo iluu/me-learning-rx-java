@@ -1,8 +1,25 @@
-import helpers.MockitoTestRunner;
+import static com.pivotallabs.greatexpectations.Expect.expect;
+import static helpers.TestFunctions.just0;
+import static helpers.TestFunctions.just1;
+import static helpers.TestFunctions.runInNewThread;
+import static helpers.TestFunctions.runInNewThreadEmitNull;
+import static helpers.TestFunctions.verifyNotificationSequence;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import rx.Notification;
 import rx.Observable;
 import rx.Observer;
@@ -16,15 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 
-import static com.pivotallabs.greatexpectations.Expect.expect;
-import static helpers.TestFunctions.*;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.*;
-
-@RunWith(MockitoTestRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ObservableTest {
 
     @Mock
