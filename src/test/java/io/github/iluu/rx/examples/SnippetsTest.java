@@ -1,4 +1,4 @@
-import static helpers.TestFunctions.verifyNotificationSequence;
+package io.github.iluu.rx.examples;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,6 +10,8 @@ import rx.functions.Func1;
 import rx.functions.Func2;
 
 import java.util.Arrays;
+
+import static io.github.iluu.rx.examples.helpers.TestFunctions.verifyNotificationSequence;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SnippetsTest {

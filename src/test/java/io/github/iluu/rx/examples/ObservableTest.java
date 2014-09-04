@@ -1,19 +1,4 @@
-import static com.pivotallabs.greatexpectations.Expect.expect;
-import static helpers.TestFunctions.just0;
-import static helpers.TestFunctions.just1;
-import static helpers.TestFunctions.runInNewThread;
-import static helpers.TestFunctions.runInNewThreadEmitNull;
-import static helpers.TestFunctions.verifyNotificationSequence;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+package io.github.iluu.rx.examples;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +9,7 @@ import rx.Notification;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.observables.BlockingObservable;
@@ -32,6 +18,14 @@ import rx.subjects.PublishSubject;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.NoSuchElementException;
+
+import static com.pivotallabs.greatexpectations.Expect.expect;
+import static io.github.iluu.rx.examples.helpers.TestFunctions.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ObservableTest {
@@ -73,6 +67,35 @@ public class ObservableTest {
         verify(observer).onNext(false);
         verify(observer).onCompleted();
         verifyNoMoreInteractions(observer);
+    }
+
+    @Test
+    public void doOnNextCallsAnActionForEachItemObservableEmits() {
+        PublishSubject<Integer> observable = PublishSubject.create();
+        Action1<Integer> action = mock(Action1.class);
+
+        observable.doOnNext(action).subscribe(testObserver);
+        observable.onNext(2);
+        observable.onNext(3);
+        observable.onError(new Exception());
+
+        verify(action).call(2);
+        verify(action).call(3);
+        verifyNoMoreInteractions(action);
+    }
+
+    @Test
+    public void doOnEachCallsAnAction() {
+        PublishSubject<Integer> observable = PublishSubject.create();
+        Observer<Integer> onEachObserver = mock(Observer.class);
+
+        observable.doOnEach(onEachObserver).subscribe(testObserver);
+        observable.onNext(2);
+        observable.onError(new Exception());
+
+        verify(onEachObserver).onNext(2);
+        verify(onEachObserver).onError(any(Exception.class));
+        verifyNoMoreInteractions(onEachObserver);
     }
 
     @Test

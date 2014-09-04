@@ -1,4 +1,4 @@
-package helpers;
+package io.github.iluu.rx.examples.helpers;
 
 import rx.Observer;
 import rx.functions.Func0;
